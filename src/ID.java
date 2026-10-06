@@ -1,6 +1,6 @@
 public class ID{
     private String id;
-    private static int counter = 0;
+    private static int counter = 1000;
     public ID(){
         this.id = genID();
     }
