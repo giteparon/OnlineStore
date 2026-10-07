@@ -11,6 +11,7 @@ import java.nio.file.*;
 public class Server {
 
   private static volatile String latestEventData = "{}";
+  private static volatile String latestEventDataAnswer = "{}";
 
   public static void main(String[] args) throws IOException {
 
@@ -42,6 +43,7 @@ public class Server {
 
         String response = latestEventData;
 
+
         exchange.getResponseHeaders().set(
             "Content-Type",
             "application/json"
@@ -59,7 +61,54 @@ public class Server {
       }
     });
 
+    server.createContext("/loginAPIjsAnswer", exchange -> {
+      if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+        String body = new String(exchange.getRequestBody().readAllBytes());
 
+        System.out.println("[API] Received: " + body);
+        if(body.contains("NotFound")){
+          System.out.println("[API] Not Found");
+        }
+        if(body.contains("Found")){
+          System.out.println("[API] FOUNDDDDDDDDDDDDDDDDDD");
+        }
+        latestEventDataAnswer = body;
+
+        String response = "{\"status\":\"ok\"}";
+
+        exchange.getResponseHeaders().set(
+            "Content-Type",
+            "application/json"
+        );
+
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+          os.write(response.getBytes());
+        }
+
+      }
+      else if(exchange.getRequestMethod().equalsIgnoreCase("GET")){
+        System.out.println("[API] Sending: " + latestEventDataAnswer);
+
+        String response = latestEventDataAnswer;
+
+        exchange.getResponseHeaders().set(
+            "Content-Type",
+            "application/json"
+        );
+
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+          os.write(response.getBytes());
+        }
+
+      }
+      else {
+        exchange.sendResponseHeaders(405, -1);
+      }
+    });
     server.createContext("/", exchange -> {
       String path = exchange.getRequestURI().getPath();
       if (path.equals("/")) {
